@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RapidAid — AI Smart Ambulance Dispatch System</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <!-- GOOGLE MAPS -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDALIENvWQJQf452quinMb4k0xj8-m3ZoA&libraries=geometry"></script>
+  <!-- FONT AWESOME CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- MATERIAL ICONS -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- MESH BACKGROUND EFFECT -->
+  <div id="mesh-background">
+      <div class="particle p1"></div>
+      <div class="particle p2"></div>
+      <div class="particle p3"></div>
+      <div class="particle p4"></div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- THEME TOGGLE -->
+  <button id="theme-toggle" class="btn btn-outline"
+    style="position:fixed; bottom:20px; right:20px; z-index:9999; border-radius:50%; width:50px; height:50px; padding:0; display:flex; align-items:center; justify-content:center; background:var(--bg-panel); border-color:var(--accent-blue);"
+    onclick="toggleTheme()">
+    <i class="fa-solid fa-moon" id="theme-icon"></i>
+  </button>
+
+  <!-- PAGE 1: LOGIN -->
+  <div id="page-login" class="page-section hidden" style="position: relative;">
+    <!-- Animated Video Background Sequence -->
+    <img id="login-video-bg" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; opacity:0.35; pointer-events:none; mix-blend-mode: luminosity;" alt="background sequence" />
+
+    <h1 class="login-title">RapidAid <span class="text-red">Ops</span></h1>
+    <p class="text-muted" style="margin-bottom: 3rem;">AI Smart Ambulance Dispatch System</p>
+
+    <div class="role-cards">
+      <div class="role-card glass-panel glow-blue" data-role="hospital" onclick="openLoginModal('hospital')">
+        <div class="role-icon"><i class="fa-solid fa-hospital"></i></div>
+        <h3>Hospital</h3>
+        <p class="text-muted" style="margin-top:10px;">Manage beds and incoming alerts</p>
+      </div>
+      <div class="role-card glass-panel glow-green" data-role="driver" onclick="openLoginModal('driver')">
+        <div class="role-icon"><i class="fa-solid fa-truck-medical"></i></div>
+        <h3>Driver</h3>
+        <p class="text-muted" style="margin-top:10px;">Receive dispatch and route</p>
+      </div>
+      <div class="role-card glass-panel glow-red" data-role="admin" onclick="openLoginModal('admin')">
+        <div class="role-icon"><i class="fa-solid fa-desktop"></i></div>
+        <h3>Control Room</h3>
+        <p class="text-muted" style="margin-top:10px;">AI routing and fleet management</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 50px;">
+      <button class="btn btn-outline" onclick="resetDemo()"><i class="fa-solid fa-rotate-right"></i> Reset Demo
+        State</button>
+    </div>
+  </div>
+
+  <div id="login-modal" class="login-modal hidden">
+    <div class="login-form glass-panel">
+      <h2 style="margin-bottom: 20px;">Login as <span id="l-role" class="text-blue"></span></h2>
+
+      <div id="login-standard-inputs">
+        <input type="text" id="l-user" placeholder="Username">
+        <input type="password" id="l-pass" placeholder="Password">
+      </div>
+
+      <div id="login-driver-inputs" class="hidden">
+        <p class="text-muted" style="text-align:left; font-size:0.9rem; margin-bottom:5px;">Select driver for
+          demonstration:</p>
+        <select id="l-driver-select"
+          style="width:100%; padding:12px; margin-bottom:1rem; background:rgba(255,255,255,0.05); color:white; border-radius:6px; font-family:'DM Sans',sans-serif;"></select>
+      </div>
+
+      <!-- NEW LOGIN HOSPITALS DROPDOWN -->
+      <div id="login-hospital-inputs" class="hidden">
+        <p class="text-muted" style="text-align:left; font-size:0.9rem; margin-bottom:5px;">Select hospital for
+          demonstration:</p>
+        <select id="l-hospital-select"
+          style="width:100%; padding:12px; margin-bottom:1rem; background:rgba(255,255,255,0.05); color:white; border-radius:6px; font-family:'DM Sans',sans-serif;"></select>
+      </div>
+
+      <button class="btn btn-primary" id="login-btn-final" style="width:100%; margin-top:10px;">Login</button>
+      <button class="btn btn-outline" onclick="document.getElementById('login-modal').classList.add('hidden')"
+        style="width:100%; margin-top:10px;">Cancel</button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: HOSPITAL DASHBOARD -->
+  <div id="page-hospital" class="page-section hidden">
+    <div class="header">
+      <h2><i class="fa-solid fa-hospital color-blue"></i> <span id="hosp-name">Hospital Name</span> <span
+          class="badge badge-green">
+          <div class="live-dot" style="width:6px;height:6px;"></div> LIVE
+        </span></h2>
+      <div style="display:flex; gap:15px; align-items:center;">
+        <span class="live-clock">00:00:00</span>
+        <i class="fa-solid fa-bell"></i> (1)
+        <button class="btn btn-outline" onclick="resetDemo()">Reset Demo</button>
+        <button class="btn btn-outline" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="page-container">
+      <div class="glass-panel text-center hidden" id="h-availability-status"
+        style="padding:40px; margin-bottom:24px; border-color:var(--accent-red);">
+        <h2 class="text-red"><i class="fa-solid fa-ban"></i> HOSPITAL UNAVAILABLE</h2>
+        <p class="text-muted">You are currently marked as not accepting patients or unavailable.</p>
+      </div>
+
+      <div id="h-active-dashboard">
+        <div class="grid-4" style="margin-bottom: 24px;">
+          <div class="glass-panel stat-card glow-green">
+            <div class="label">Accepting Status</div>
+            <label class="switch" style="margin-top: 10px;">
+              <input type="checkbox" id="h-toggle-acc" checked onchange="toggleHospAcc()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="glass-panel stat-card">
+            <div class="label">Beds Available</div>
+            <div class="value text-blue"><span id="h-beds">0</span>/<span id="h-total-beds">0</span></div>
+            <div>
+              <button class="btn btn-outline" style="padding:2px 10px;" onclick="updateHospBeds(-1)">-</button>
+              <button class="btn btn-outline" style="padding:2px 10px;" onclick="updateHospBeds(1)">+</button>
+            </div>
+          </div>
+          <div class="glass-panel stat-card">
+            <div class="label">ICU Available</div>
+            <div class="value text-amber"><span id="h-icu">0</span>/<span id="h-total-icu">0</span></div>
+          </div>
+          <div class="glass-panel stat-card">
+            <div class="label">Docs On Duty</div>
+            <div class="value text-green" id="h-docs">0</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="glass-panel" style="padding: 24px;">
+            <h3 style="margin-bottom: 20px;">AI Ranking Score</h3>
+            <div style="display:flex; align-items:center; gap:30px;">
+              <div style="font-size: 5rem; font-family:'Syne',sans-serif; color:var(--accent-blue);" id="h-score">0
+              </div>
+              <div>
+                <p class="text-muted" style="margin-bottom: 10px;">Your ranking is currently excellent for emergencies
+                  in your zone.</p>
+                <div style="width:100%; height:8px; background:#333; border-radius:4px; margin-bottom:5px;">
+                  <div style="width:80%; height:100%; background:var(--accent-blue); border-radius:4px;"></div>
+                </div>
+                <small class="text-muted">General Readiness Factor (80%)</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="padding: 24px; position:relative;">
+            <h3 style="margin-bottom: 20px;">Incoming Notifications</h3>
+
+            <div id="h-incoming-box" class="patient-alert hidden" style="background: rgba(239, 68, 68, 0.1);">
+              <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <h4 class="text-red"><i class="fa-solid fa-circle-exclamation"></i> INCOMING PATIENT ALERT</h4>
+                <span class="badge badge-red">ETA: <span id="hi-eta"></span> MIN</span>
+              </div>
+              <p style="margin-bottom:5px;"><strong>Condition:</strong> <span id="hi-cond"></span></p>
+              <p><strong>Dispatched Driver:</strong> <span id="hi-driver"></span></p>
+
+              <div id="hologram-btns" style="margin-top:20px; display:flex; gap:10px;">
+                <button class="btn btn-success" onclick="ackAlertHospital()"><i class="fa-solid fa-check"></i> ACCEPT
+                  PATIENT</button>
+              </div>
+
+              <div id="h-checklist" class="hidden"
+                style="margin-top:20px; background:rgba(0,0,0,0.3); padding:15px; border-radius:8px;">
+                <h5 style="margin-bottom:10px;">Preparation Checklist</h5>
+                <label class="checklist-item"><input type="checkbox" onchange="checkPreps()"> ER Bay Ready</label>
+                <label class="checklist-item"><input type="checkbox" onchange="checkPreps()"> Defibrillator
+                  Standby</label>
+                <label class="checklist-item"><input type="checkbox" onchange="checkPreps()"> Specialists Paged</label>
+                <button class="btn btn-primary" id="btn-team-ready"
+                  style="width:100%; margin-top:15px; padding:12px; font-weight:bold;"
+                  onclick="notifyTeamReady()">NOTIFY AMBULANCE: TEAM READY</button>
+              </div>
+
+              <!-- Hospital live tracking map -->
+              <div id="hospital-map-section" class="hidden" style="margin-top: 15px;">
+                <p class="text-muted" style="margin-bottom:5px;">Live Patient Location:</p>
+                <div class="map-container glow-blue" id="hospital-tracking-map" style="height: 250px;"></div>
+              </div>
+
+            </div>
+
+            <div class="text-center text-muted" id="h-no-notif" style="padding: 40px 0;">No active incoming emergencies
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: DRIVER DASHBOARD -->
+  <div id="page-driver" class="page-section hidden">
+    <div class="header">
+      <h2><i class="fa-solid fa-truck-medical color-green"></i> AMBULANCE <span id="driver-amb"
+          class="text-green"></span> - <span id="driver-city" class="text-muted"></span></h2>
+      <div style="display:flex; gap:15px; align-items:center;">
+        <span class="live-clock">00:00:00</span>
+        <button class="btn btn-outline" onclick="resetDemo()">Reset Demo</button>
+        <button class="btn btn-outline" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="page-container">
+      <div class="glass-panel text-center hidden" id="d-availability-status"
+        style="padding:40px; margin-bottom:24px; border-color:var(--accent-red);">
+        <h2 class="text-red"><i class="fa-solid fa-ban"></i> DRIVER UNAVAILABLE</h2>
+        <p class="text-muted">You are currently off duty or inactive currently.</p>
+      </div>
+
+      <div id="d-active-dashboard">
+        <div class="grid-2">
+          <div class="glass-panel" style="padding:24px; display:flex; align-items:center; gap:20px;">
+            <div
+              style="width:80px;height:80px;border-radius:50%;background:var(--accent-blue);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:bold;">
+              AMB</div>
+            <div>
+              <h3 id="driver-name" style="margin-bottom:5px;">Driver Name</h3>
+              <p class="text-green"><span class="badge badge-green"><i class="fa-solid fa-check"></i> Verified</span>
+                ONLINE</p>
+            </div>
+            <div style="margin-left:auto; text-align:center;">
+              <div style="font-size:3rem; font-family:'Syne',sans-serif; color:var(--accent-green);" id="driver-score">
+                94</div>
+              <div class="text-muted" style="font-size:0.8rem;">EFFICIENCY</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Emergency Popup Overlay -->
+        <div id="driver-popup" class="overlay hidden">
+          <div class="glass-panel emergency-alert-popup">
+            <h1 class="text-red" style="font-size:2.5rem; margin-bottom:10px;"><i
+                class="fa-solid fa-triangle-exclamation"></i> NEW INCIDENT DISPATCH</h1>
+            <p class="text-muted" style="margin-bottom:30px;">Assigned by Central AI</p>
+
+            <div
+              style="background:rgba(0,0,0,0.5); padding:20px; border-radius:8px; text-align:left; margin-bottom:20px;">
+              <p><strong class="text-amber">Patient Name:</strong> <span id="dp-pname"></span></p>
+              <p style="margin-top:10px;"><strong class="text-amber">Condition:</strong> <span id="dp-cond"></span></p>
+              <p style="margin-top:10px;"><strong class="text-blue">Dest Hospital:</strong> <span id="dp-hosp"></span>
+              </p>
+              <p style="margin-top:10px;"><strong class="text-blue">Hospital Status:</strong> <span
+                  class="text-green">Accepting Patients</span></p>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+              <button class="btn btn-success" style="flex:3; font-size:1.5rem; padding:15px;"
+                onclick="acceptDispatch()"><i class="fa-solid fa-check"></i> ACCEPT MAP & NAVIGATE</button>
+              <button class="btn btn-danger" style="flex:1;" onclick="declineDispatch()"><i
+                  class="fa-solid fa-xmark"></i> DECLINE</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Route map -->
+        <div id="driver-map-section" class="hidden" style="margin-top: 24px;">
+          <h3 style="margin-bottom: 15px;">Live Route Navigation (<span id="dt-eta"
+              class="text-amber">Calculating...</span>)</h3>
+          <div class="map-container glow-blue" id="driver-map"></div>
+          <div style="margin-top: 20px; display:flex; gap:10px;">
+            <button class="btn btn-primary" id="dt-btn-1" style="flex:1; padding:20px; font-size:1.2rem;"
+              onclick="updateDriverStatus(1)">ARRIVED AT LOCATION</button>
+            <button class="btn btn-amber hidden" id="dt-btn-2"
+              style="flex:1; padding:20px; font-size:1.2rem; background:var(--accent-amber); color:black;"
+              onclick="updateDriverStatus(2)">EN ROUTE TO HOSPITAL</button>
+            <button class="btn btn-success hidden" id="dt-btn-3" style="flex:1; padding:20px; font-size:1.2rem;"
+              onclick="updateDriverStatus(3)">PATIENT DELIVERED</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completion Modal -->
+      <div id="driver-completion-modal" class="overlay hidden" style="z-index: 2000;">
+        <div class="glass-panel text-center"
+          style="padding: 40px; border-color: var(--accent-green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);">
+          <h1 class="text-green" style="font-size:2.5rem; margin-bottom:10px;"><i class="fa-solid fa-circle-check"></i>
+            DISPATCH COMPLETE</h1>
+          <p class="text-muted" style="margin-bottom:20px;">Patient has successfully arrived at the destination
+            hospital.</p>
+          <div style="font-size: 1.5rem; margin-bottom: 20px;">
+            Duration: <span id="dc-time" class="text-blue">12m</span>
+          </div>
+          <button class="btn btn-success" style="width:100%; font-size:1.2rem; padding:15px;"
+            onclick="closeCompletionModal()">BACK TO DISPATCH BAY</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  </div>
+
+  <!-- PAGE 4: CONTROL ROOM DASHBOARD -->
+  <div id="page-control" class="page-section hidden">
+    <div class="header" style="border-bottom-color: var(--accent-red);">
+      <h2 class="text-red"><i class="fa-solid fa-desktop"></i> 108 Control Room — AmbulanceAI</h2>
+      <div style="display:flex; gap:15px; align-items:center;">
+        <select id="cr-city-select" class="form-control" style="width: auto; height: 40px;" onchange="onCityChange()">
+          <option value="Delhi">Location: Connaught Place, New Delhi</option>
+          <option value="Bengaluru">Location: Yelahanka, Bengaluru</option>
+        </select>
+        <span class="badge badge-green">OPERATORS ONLINE</span>
+        <span class="live-clock text-muted">00:00:00</span>
+        <button class="btn btn-outline" onclick="resetDemo()">Reset Demo</button>
+        <button class="btn btn-outline" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="page-container" style="padding: 16px;">
+      <div class="grid-3">
+        <!-- LEFT: HOSPITALS -->
+        <div>
+          <h3 style="margin-bottom:15px; font-size:1.2rem;">Live Hospital Status</h3>
+          <div id="cr-hospitals-list" style="max-height: 600px; overflow-y:auto; padding-right:10px;"></div>
+        </div>
+
+        <!-- CENTER: DISPATCH -->
+        <div>
+          <div class="glass-panel" style="padding: 20px; border-color:var(--accent-red);">
+            <h3 style="margin-bottom: 20px; color:var(--accent-red); display:flex; align-items:center; gap:10px;">
+              <div class="live-dot" style="background:var(--accent-red); box-shadow:0 0 10px red;"></div> NEW INCIDENT
+              RECORD
+            </h3>
+            <div class="form-group">
+              <label>Patient Name</label>
+              <input type="text" class="form-control" id="f-pname" value="Rahul Singh">
+            </div>
+            <div class="form-group">
+              <label>Patient Age</label>
+              <input type="number" class="form-control" id="f-age" value="54">
+            </div>
+            <div class="form-group">
+              <label>Condition / Chief Complaint</label>
+              <select class="form-control" id="f-cond">
+                <option>Accident</option>
+                <option>Cardiac Arrest</option>
+                <option>Stroke</option>
+                <option>Head Trauma</option>
+                <option>Burns</option>
+                <option>RTA Polytrauma</option>
+                <option>Others</option>
+              </select>
+            </div>
+
+            <button class="btn btn-outline"
+              style="width:100%; border-color:var(--accent-blue); color:var(--accent-blue);" id="ai-btn"
+              onclick="simAI()"><i class="fa-solid fa-microchip"></i> GET AI RECOMMENDATION</button>
+
+            <div id="ai-loader" class="hidden text-center">
+              <div class="loader"></div>
+              <p class="text-blue" style="margin-top:10px; animation: pulse 1s infinite;">Calculating distances &
+                traffic conditions...</p>
+            </div>
+
+            <div id="ai-result" class="hidden" style="margin-top: 20px;">
+              <!-- Dynamically populated 3 AI Options -->
+            </div>
+          </div>
+
+          <h3 style="margin:20px 0 15px 0; font-size:1.2rem;">Active Incidents</h3>
+          <p class="text-muted" style="font-size:0.8rem; margin-bottom:10px;">Click an incident to track live location
+          </p>
+          <div id="cr-incidents"></div>
+        </div>
+
+        <!-- RIGHT: FLEET & MAP -->
+        <div>
+          <h3 style="margin-bottom:15px; font-size:1.2rem;">Fleet Map (Live)</h3>
+          <div class="map-container" id="cr-map" style="margin-bottom:20px;"></div>
+
+          <h3 style="margin-bottom:15px; font-size:1.2rem;">Ambulance Fleet Status</h3>
+          <div class="glass-panel" style="padding:10px; max-height: 250px; overflow-y:auto;">
+            <div id="cr-fleet-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Login Page Video Frame Animation
+    (function initLoginVideoBackground() {
+      const loginVideoBg = document.getElementById('login-video-bg');
+      if (!loginVideoBg) return;
+
+      const totalFrames = 80;
+      let currentFrame = 0;
+      const images = [];
+
+      // Preload images
+      for (let i = 0; i < totalFrames; i++) {
+        const img = new Image();
+        // File padding format: 000...079
+        const frameNum = i.toString().padStart(3, '0');
+        img.src = encodeURI(`video 2 images/video 2_${frameNum}.jpg`);
+        images.push(img);
+      }
+
+      function animateVideo() {
+        const pageLogin = document.getElementById('page-login');
+        // Only run animation if page is active
+        if (pageLogin && !pageLogin.classList.contains('hidden')) {
+          loginVideoBg.src = images[currentFrame].src;
+          currentFrame = (currentFrame + 1) % totalFrames;
+        }
+      }
+
+      // Update frame roughly ~24fps
+      setInterval(animateVideo, 41);
+    })();
+  </script>
+</body>
+
+</html>
