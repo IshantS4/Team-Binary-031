@@ -416,7 +416,7 @@
         const img = new Image();
         // File padding format: 000...079
         const frameNum = i.toString().padStart(3, '0');
-        img.src = encodeURI(`video 2 images/video 2_${frameNum}.jpg`);
+        img.src = `/video 2_${frameNum}.jpg`;
         images.push(img);
       }
 
